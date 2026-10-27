@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Lock, Mail, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types';
+import loginConstructionHero from '../assets/images/login_construction_hero_1792219352522.jpg';
 
 export const LoginView: React.FC = () => {
   const { login } = useAuth();
@@ -36,7 +37,7 @@ export const LoginView: React.FC = () => {
       <div className="relative flex-1 hidden lg:flex flex-col justify-between p-12 overflow-hidden bg-slate-950">
         {/* Background Image with subtle architectural contrast */}
         <img
-          src="/src/assets/images/login_construction_hero_1792219352522.jpg"
+          src={loginConstructionHero}
           alt="Modern Architectural Engineering"
           className="absolute inset-0 w-full h-full object-cover opacity-40 brightness-95"
           referrerPolicy="no-referrer"
