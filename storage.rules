@@ -1,0 +1,19 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    match /projects/{projectId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      // Allow uploads of standard engineering documents (PDF, DWG, images, zips) under 50MB
+      allow write: if isAuthenticated() &&
+                   request.resource.size < 50 * 1024 * 1024 &&
+                   (request.resource.contentType.matches('application/pdf') ||
+                    request.resource.contentType.matches('image/.*') ||
+                    request.resource.contentType.matches('application/zip') ||
+                    request.resource.contentType.matches('application/octet-stream'));
+    }
+  }
+}

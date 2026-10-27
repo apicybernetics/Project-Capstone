@@ -1,0 +1,6 @@
+{
+  "name": "Project Management Outlook",
+  "description": "Enterprise Project Management, Cost Control, Billing, Collection & Forecasting System for capital construction and engineering projects.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

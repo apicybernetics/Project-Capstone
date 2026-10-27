@@ -1,0 +1,12 @@
+{
+  "projectId": "project-management-outlook",
+  "appId": "1:629313153131:web:bb22c3f10c4aea271ae92e",
+  "apiKey": "AIzaSyAhsJMWHxsS_MBzRBOBqm3VjNk2TnEcCtQ",
+  "authDomain": "project-management-outlook.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-projectmanagemen-e7e659ff-6bb8-4cb2-9839-9719ec464008",
+  "storageBucket": "project-management-outlook.firebasestorage.app",
+  "messagingSenderId": "629313153131",
+  "measurementId": "",
+  "oAuthClientId": "629313153131-0eg1sjr06n97v6ifti4m057v719cs12f.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
+}

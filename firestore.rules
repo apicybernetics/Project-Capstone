@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------
+    // Helper Authorization Functions
+    // -------------------------------------------------------------
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function getUserRole() {
+      return getUserData().role;
+    }
+
+    function isSystemAdmin() {
+      return isAuthenticated() && (getUserRole() == 'System Administrator' || request.auth.token.admin == true);
+    }
+
+    function isProjectManager() {
+      return isAuthenticated() && (getUserRole() == 'Project Manager' || isSystemAdmin());
+    }
+
+    function isFinanceOfficer() {
+      return isAuthenticated() && (getUserRole() == 'Finance Officer' || isSystemAdmin());
+    }
+
+    function isBillingOfficer() {
+      return isAuthenticated() && (getUserRole() == 'Billing and Collection Officer' || isFinanceOfficer() || isSystemAdmin());
+    }
+
+    // -------------------------------------------------------------
+    // User Profiles
+    // -------------------------------------------------------------
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isSystemAdmin() || request.auth.uid == userId;
+    }
+
+    // -------------------------------------------------------------
+    // Projects Collection
+    // -------------------------------------------------------------
+    match /projects/{projectId} {
+      allow read: if isAuthenticated();
+      allow create: if isProjectManager();
+      allow update: if isProjectManager() || isFinanceOfficer();
+      allow delete: if isSystemAdmin();
+
+      // Project Members
+      match /members/{memberId} {
+        allow read: if isAuthenticated();
+        allow write: if isProjectManager();
+      }
+
+      // Baselines: Once approved, baselines become IMMUTABLE revisions!
+      match /baselines/{baselineId} {
+        allow read: if isAuthenticated();
+        allow create: if isProjectManager();
+        // Update permitted only if not yet approved
+        allow update: if (isProjectManager() && !resource.data.isApproved) || isFinanceOfficer();
+        allow delete: if false; // Historical baselines cannot be deleted
+      }
+
+      // Periodic Updates & Progress Reports
+      match /updates/{updateId} {
+        allow read: if isAuthenticated();
+        allow create: if isProjectManager();
+        allow update: if isProjectManager() || isFinanceOfficer();
+        allow delete: if isSystemAdmin();
+      }
+
+      // Financial & Cost Records
+      match /costRecords/{costId} {
+        allow read: if isAuthenticated();
+        allow write: if isFinanceOfficer() || isProjectManager();
+      }
+
+      match /billingRecords/{billingId} {
+        allow read: if isAuthenticated();
+        allow write: if isBillingOfficer();
+      }
+
+      match /collectionRecords/{collectionId} {
+        allow read: if isAuthenticated();
+        allow write: if isBillingOfficer();
+      }
+
+      // Project Documents
+      match /documents/{documentId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isProjectManager() || isFinanceOfficer();
+        allow delete: if isSystemAdmin() || isProjectManager();
+      }
+
+      // Risks & Issues
+      match /risks/{riskId} {
+        allow read: if isAuthenticated();
+        allow write: if isProjectManager();
+      }
+
+      match /issues/{issueId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+      }
+
+      // Closeouts
+      match /closeouts/{closeoutId} {
+        allow read: if isAuthenticated();
+        allow write: if isProjectManager() || isFinanceOfficer();
+      }
+
+      // Audit Logs: Append-only and protected from tampering
+      match /auditLogs/{logId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update, delete: if false;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Global Notifications
+    // -------------------------------------------------------------
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isSystemAdmin();
+    }
+  }
+}
