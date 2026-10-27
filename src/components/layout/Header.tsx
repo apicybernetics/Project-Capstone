@@ -10,8 +10,6 @@ import {
   CheckCircle,
   Building,
   Camera,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Project, UserRole, AppNotification } from '../../types';
@@ -74,23 +72,6 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <Menu className="w-5 h-5" />
         </button>
-
-        {/* Desktop sidebar expand/collapse trigger */}
-        {onToggleSidebarCollapse && (
-          <button
-            type="button"
-            onClick={onToggleSidebarCollapse}
-            title={isSidebarCollapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
-            className="hidden lg:flex p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0"
-            aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {isSidebarCollapsed ? (
-              <PanelLeftOpen className="w-5 h-5 text-slate-600" />
-            ) : (
-              <PanelLeftClose className="w-5 h-5 text-slate-600" />
-            )}
-          </button>
-        )}
 
         {/* Project Selector Dropdown */}
         <div className="relative">
