@@ -134,6 +134,7 @@ export const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({
     if (!projectCode.trim()) errors.push('Project Code is required');
     if (!client.trim()) errors.push('Client information is required');
     if (!contractValue || contractValue <= 0) errors.push('Valid contract value is required');
+    if (contractValue > 50000000) errors.push('Contract value cannot exceed ₱50,000,000 (Maximum limit is 50 Million)');
     if (!approvedBudget || approvedBudget <= 0) errors.push('Approved budget must be greater than zero');
     if (approvedBudget > contractValue * 1.5) errors.push('Approved budget exceeds reasonable ratio of contract value');
     if (!startDate || !completionDate) errors.push('Valid project date bounds are required');
@@ -358,10 +359,11 @@ export const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Contract Value (₱)
+                  Contract Value (₱) <span className="text-slate-400 font-normal">(Max: ₱50M)</span>
                 </label>
                 <input
                   type="number"
+                  max={50000000}
                   value={contractValue}
                   onChange={(e) => setContractValue(Number(e.target.value))}
                   placeholder="25000000"

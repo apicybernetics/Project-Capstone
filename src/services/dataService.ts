@@ -70,7 +70,7 @@ const INITIAL_PROJECTS: Project[] = [
     startDate: '2025-06-01',
     targetCompletionDate: '2027-08-31',
     targetDurationMonths: 26,
-    contractAmount: 850000000,
+    contractAmount: 48000000,
     currency: 'PHP',
     status: 'Active',
     currentHealth: 'On Track',
@@ -97,7 +97,7 @@ const INITIAL_PROJECTS: Project[] = [
     startDate: '2025-10-01',
     targetCompletionDate: '2027-04-30',
     targetDurationMonths: 18,
-    contractAmount: 120000000,
+    contractAmount: 38500000,
     currency: 'PHP',
     status: 'Active',
     currentHealth: 'Slight Delay',
@@ -149,7 +149,7 @@ const INITIAL_PROJECTS: Project[] = [
     startDate: '2025-08-01',
     targetCompletionDate: '2026-10-31',
     targetDurationMonths: 15,
-    contractAmount: 68000000,
+    contractAmount: 32000000,
     currency: 'PHP',
     status: 'Active',
     currentHealth: 'Behind',
@@ -518,6 +518,19 @@ const INITIAL_NOTIFICATIONS: AppNotification[] = [
   },
 ];
 
+// Helper to enforce maximum 50M contract value on mock data
+const clampContractAmount = (prj: Project): Project => {
+  if (prj.contractAmount > 50000000) {
+    let clamped = 48000000;
+    if (prj.id === 'proj-mre-002') clamped = 48000000;
+    else if (prj.id === 'proj-sft-003') clamped = 38500000;
+    else if (prj.id === 'proj-phw-005') clamped = 32000000;
+    else clamped = 50000000;
+    return { ...prj, contractAmount: clamped };
+  }
+  return prj;
+};
+
 class EnterpriseDataStore {
   private projects: Project[] = [];
   private baselines: Record<string, ProjectBaseline> = {};
@@ -538,11 +551,17 @@ class EnterpriseDataStore {
       const p = localStorage.getItem('pmo_projects');
       const rawProjects: Project[] = p ? JSON.parse(p) : INITIAL_PROJECTS;
       const seen = new Set<string>();
-      this.projects = rawProjects.filter((prj) => {
-        if (!prj.id || seen.has(prj.id)) return false;
-        seen.add(prj.id);
-        return true;
-      });
+      this.projects = rawProjects
+        .filter((prj) => {
+          if (!prj.id || seen.has(prj.id)) return false;
+          seen.add(prj.id);
+          return true;
+        })
+        .map(clampContractAmount);
+
+      if (p) {
+        localStorage.setItem('pmo_projects', JSON.stringify(this.projects));
+      }
 
       const b = localStorage.getItem('pmo_baselines');
       this.baselines = b ? JSON.parse(b) : INITIAL_BASELINES;
@@ -617,11 +636,13 @@ class EnterpriseDataStore {
       list = [...this.projects];
     }
     const seen = new Set<string>();
-    return list.filter((prj) => {
-      if (!prj.id || seen.has(prj.id)) return false;
-      seen.add(prj.id);
-      return true;
-    });
+    return list
+      .filter((prj) => {
+        if (!prj.id || seen.has(prj.id)) return false;
+        seen.add(prj.id);
+        return true;
+      })
+      .map(clampContractAmount);
   }
 
   async getProjectById(id: string): Promise<Project | null> {
@@ -629,12 +650,13 @@ class EnterpriseDataStore {
       try {
         const docRef = doc(db, 'projects', id);
         const snap = await getDoc(docRef);
-        if (snap.exists()) return snap.data() as Project;
+        if (snap.exists()) return clampContractAmount(snap.data() as Project);
       } catch (e) {
         console.warn('Firestore fetch failed:', e);
       }
     }
-    return this.projects.find((p) => p.id === id) || null;
+    const found = this.projects.find((p) => p.id === id);
+    return found ? clampContractAmount(found) : null;
   }
 
   async createProject(project: Project, user: UserProfile): Promise<Project> {
