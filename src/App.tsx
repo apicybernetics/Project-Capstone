@@ -324,6 +324,9 @@ const MainApp: React.FC = () => {
               <DocumentsView
                 project={selectedProject}
                 documents={documents}
+                baseline={activeBaseline}
+                latestUpdate={latestUpdate}
+                metrics={metricsMap[selectedProject.id] || null}
                 onUploadDocument={async (doc) => {
                   if (currentUser) {
                     await dataStore.addDocument(doc, currentUser);

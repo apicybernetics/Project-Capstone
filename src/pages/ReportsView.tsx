@@ -15,6 +15,7 @@ import {
 import { Project, ProjectBaseline, ProjectUpdate } from '../types';
 import { exportPortfolioSummaryReport, exportProjectDetailReport, printReportView } from '../services/reportService';
 import { calculateEVMMetrics, formatCurrency } from '../services/financialService';
+import { GoogleDocsProposalModal } from '../components/modals/GoogleDocsProposalModal';
 
 interface ReportsViewProps {
   projects: Project[];
@@ -31,12 +32,21 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'Standard Reports' | 'Custom Reports'>('Standard Reports');
   const [activeReportModal, setActiveReportModal] = useState<string | null>(null);
+  const [showProposalModal, setShowProposalModal] = useState<boolean>(false);
 
   const targetProject = selectedProject || projects[0];
   const evm = targetProject ? calculateEVMMetrics(targetProject, baseline, latestUpdate) : null;
 
-  // Report cards matching Screenshot 8
+  // Report cards matching Screenshot 8 + Google Docs Proposal
   const standardReports = [
+    {
+      id: 'proposal-gdocs',
+      title: 'Project Proposal (Google Docs)',
+      description: 'Create and format an official executive Project Proposal directly in Google Docs & Drive.',
+      icon: FileText,
+      color: 'text-blue-700 bg-blue-50 border border-blue-200',
+      isGoogleDocs: true,
+    },
     {
       id: 'summary',
       title: 'Project Summary Report',
@@ -102,6 +112,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setShowProposalModal(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
+          >
+            <FileText className="w-4 h-4 text-white" />
+            <span>Create Proposal (Google Docs)</span>
+          </button>
+          <button
             onClick={() => {
               const metricsMap: any = {};
               projects.forEach((p) => {
@@ -165,10 +182,20 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   {targetProject.code}
                 </span>
                 <button
-                  onClick={() => setActiveReportModal(report.id)}
-                  className="px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-bold transition-all"
+                  onClick={() => {
+                    if (report.isGoogleDocs) {
+                      setShowProposalModal(true);
+                    } else {
+                      setActiveReportModal(report.id);
+                    }
+                  }}
+                  className={`px-4 py-2 border rounded-lg text-xs font-bold transition-all ${
+                    report.isGoogleDocs
+                      ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700'
+                      : 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'
+                  }`}
                 >
-                  Generate
+                  {report.isGoogleDocs ? 'Open Docs Exporter' : 'Generate'}
                 </button>
               </div>
             </div>
@@ -279,6 +306,18 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Google Docs Proposal Modal */}
+      {targetProject && (
+        <GoogleDocsProposalModal
+          isOpen={showProposalModal}
+          onClose={() => setShowProposalModal(false)}
+          project={targetProject}
+          baseline={baseline}
+          latestUpdate={latestUpdate}
+          metrics={evm}
+        />
       )}
     </div>
   );

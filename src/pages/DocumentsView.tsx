@@ -11,14 +11,18 @@ import {
   Image as ImageIcon,
   CheckCircle2,
 } from 'lucide-react';
-import { Project, ProjectDocument } from '../types';
+import { Project, ProjectDocument, ProjectBaseline, ProjectUpdate, EVMMetrics } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { GoogleDocsProposalModal } from '../components/modals/GoogleDocsProposalModal';
 
 interface DocumentsViewProps {
   project: Project;
   documents: ProjectDocument[];
   onUploadDocument: (doc: ProjectDocument) => Promise<void>;
   onDeleteDocument: (docId: string) => Promise<void>;
+  baseline?: ProjectBaseline | null;
+  latestUpdate?: ProjectUpdate | null;
+  metrics?: EVMMetrics | null;
 }
 
 export const DocumentsView: React.FC<DocumentsViewProps> = ({
@@ -26,11 +30,15 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   documents,
   onUploadDocument,
   onDeleteDocument,
+  baseline = null,
+  latestUpdate = null,
+  metrics = null,
 }) => {
   const { currentUser } = useAuth();
   const [activeCategory, setActiveCategory] = useState<string>('All Files');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+  const [showProposalModal, setShowProposalModal] = useState<boolean>(false);
 
   // Upload modal form state
   const [newFileName, setNewFileName] = useState('');
@@ -98,13 +106,22 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => setShowUploadModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors self-start sm:self-auto"
-        >
-          <UploadCloud className="w-4 h-4" />
-          <span>Upload File</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowProposalModal(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+          >
+            <FileText className="w-4 h-4 text-white" />
+            <span>Create Proposal (Google Docs)</span>
+          </button>
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+          >
+            <UploadCloud className="w-4 h-4" />
+            <span>Upload File</span>
+          </button>
+        </div>
       </div>
 
       {/* Tabs Row matching Screenshot 9: All Files, Drawings, Contracts, Correspondence, Photos, Closeout */}
@@ -285,6 +302,16 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Google Docs Proposal Modal */}
+      <GoogleDocsProposalModal
+        isOpen={showProposalModal}
+        onClose={() => setShowProposalModal(false)}
+        project={project}
+        baseline={baseline}
+        latestUpdate={latestUpdate}
+        metrics={metrics}
+      />
     </div>
   );
 };

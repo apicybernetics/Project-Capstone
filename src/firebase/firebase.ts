@@ -36,7 +36,7 @@ const getActiveConfig = (): FirebaseClientConfig => {
     storageBucket: appletConfig.storageBucket || 'project-management-outlook.firebasestorage.app',
     messagingSenderId: appletConfig.messagingSenderId || '629313153131',
     appId: appletConfig.appId || '',
-    firestoreDatabaseId: appletConfig.firestoreDatabaseId || '',
+    firestoreDatabaseId: (appletConfig as any).firestoreDatabaseId || '',
   };
 };
 
