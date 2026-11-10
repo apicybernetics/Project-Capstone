@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 bg-[#0a2342] text-white flex flex-col transition-all duration-300 ease-in-out shadow-2xl lg:shadow-none lg:static ${
+        className={`fixed inset-y-0 left-0 z-50 bg-[#0a2342] text-white flex flex-col shadow-2xl lg:shadow-none lg:sticky lg:top-0 lg:h-screen lg:self-start lg:shrink-0 liquid-sidebar ${
           // Mobile open/close
           isOpen
             ? 'translate-x-0 w-72 max-w-[85vw]'
@@ -72,22 +72,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Brand Header */}
         <div
-          className={`flex items-center border-b border-white/10 transition-all duration-300 ${
+          className={`flex items-center border-b border-white/10 shrink-0 liquid-item ${
             isCollapsed
-              ? 'px-3 py-4 lg:justify-center justify-between'
+              ? 'px-3.5 py-4 lg:justify-center justify-between'
               : 'px-4 sm:px-5 py-4 justify-between'
           }`}
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shrink-0 transition-transform duration-300">
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M4 19h4V9H4v10zm6 0h4V5h-4v14zm6 0h4v-7h-4v7z" />
               </svg>
             </div>
-            {/* Show title when expanded, or on mobile */}
+            {/* Liquid collapsing brand title */}
             <div
-              className={`transition-opacity duration-200 overflow-hidden ${
-                isCollapsed ? 'lg:hidden' : 'block'
+              className={`overflow-hidden whitespace-nowrap liquid-item ${
+                isCollapsed
+                  ? 'lg:max-w-0 lg:opacity-0 lg:-translate-x-2'
+                  : 'max-w-[200px] opacity-100 translate-x-0'
               }`}
             >
               <h1 className="font-bold text-sm sm:text-base tracking-tight leading-tight text-white whitespace-nowrap">
@@ -123,10 +125,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onNavigate(item.id);
                     onClose();
                   }}
-                  className={`w-full flex items-center rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+                  className={`w-full flex items-center rounded-xl text-xs sm:text-sm font-medium liquid-item cursor-pointer overflow-hidden ${
                     isCollapsed
                       ? 'lg:justify-center px-3 py-2.5 sm:py-3'
-                      : 'gap-3 px-3.5 py-2.5 sm:py-2.5'
+                      : 'px-3.5 py-2.5'
                   } ${
                     isActive
                       ? 'bg-blue-600 text-white shadow-sm font-semibold'
@@ -134,15 +136,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }`}
                   aria-label={item.label}
                 >
-                  <Icon
-                    className={`w-5 h-5 shrink-0 transition-colors ${
-                      isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'
-                    }`}
-                  />
-                  {/* Label shown when expanded or on mobile drawer */}
+                  <div className="w-5 h-5 shrink-0 flex items-center justify-center">
+                    <Icon
+                      className={`w-5 h-5 transition-colors duration-200 ${
+                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'
+                      }`}
+                    />
+                  </div>
+                  {/* Liquid text label */}
                   <span
-                    className={`truncate transition-opacity ${
-                      isCollapsed ? 'lg:hidden' : 'block'
+                    className={`overflow-hidden whitespace-nowrap liquid-item truncate ${
+                      isCollapsed
+                        ? 'lg:max-w-0 lg:opacity-0 lg:ml-0'
+                        : 'max-w-[170px] opacity-100 ml-3'
                     }`}
                   >
                     {item.label}
@@ -167,51 +173,62 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Sidebar Footer */}
         <div
-          className={`p-3 sm:p-4 border-t border-white/10 text-slate-400 transition-all ${
+          className={`p-3 sm:p-4 border-t border-white/10 text-slate-400 liquid-item shrink-0 ${
             isCollapsed ? 'lg:p-2' : ''
           }`}
         >
-          {isCollapsed ? (
-            /* Compact footer when collapsed */
-            <div className="hidden lg:flex flex-col items-center gap-2 py-1">
+          {/* Desktop Collapsed Compact View */}
+          <div
+            className={`hidden lg:flex flex-col items-center gap-2 py-1 overflow-hidden liquid-item ${
+              isCollapsed
+                ? 'max-h-24 opacity-100 scale-100'
+                : 'max-h-0 opacity-0 scale-90 pointer-events-none'
+            }`}
+          >
+            <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono font-bold">
+              v3.8
+            </span>
+            {onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                title="Expand sidebar (Ctrl+B)"
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                aria-label="Expand sidebar"
+              >
+                <PanelLeftOpen className="w-5 h-5 text-blue-300" />
+              </button>
+            )}
+          </div>
+
+          {/* Desktop Expanded Detailed View */}
+          <div
+            className={`hidden lg:block text-xs overflow-hidden liquid-item ${
+              isCollapsed
+                ? 'max-h-0 opacity-0 -translate-y-2 pointer-events-none'
+                : 'max-h-36 opacity-100 translate-y-0'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-slate-300 font-medium whitespace-nowrap">Enterprise Engine</span>
               <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono font-bold">
                 v3.8
               </span>
-              {onToggleCollapse && (
-                <button
-                  type="button"
-                  onClick={onToggleCollapse}
-                  title="Expand sidebar"
-                  className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-                >
-                  <PanelLeftOpen className="w-4 h-4" />
-                </button>
-              )}
             </div>
-          ) : (
-            /* Full footer when expanded */
-            <div className="hidden lg:block text-xs">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-slate-300 font-medium">Enterprise Engine</span>
-                <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono font-bold">
-                  v3.8
-                </span>
-              </div>
-              <p className="text-[11px] leading-relaxed text-slate-400">
-                Compliant with ISO 21500 & EVM Standard (ANSI/EIA-748).
-              </p>
-              {onToggleCollapse && (
-                <button
-                  type="button"
-                  onClick={onToggleCollapse}
-                  className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1 text-[11px] font-semibold text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors cursor-pointer"
-                >
-                  <PanelLeftClose className="w-3.5 h-3.5" />
-                  <span>Collapse Sidebar</span>
-                </button>
-              )}
-            </div>
-          )}
+            <p className="text-[11px] leading-relaxed text-slate-400 whitespace-nowrap">
+              Compliant with ISO 21500 & EVM.
+            </p>
+            {onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer border border-white/5"
+              >
+                <PanelLeftClose className="w-3.5 h-3.5" />
+                <span>Collapse Sidebar</span>
+              </button>
+            )}
+          </div>
 
           {/* Mobile drawer footer always shows full info */}
           <div className="lg:hidden text-xs">

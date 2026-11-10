@@ -11,6 +11,20 @@
   }
 }
 
+/* Liquid fluid easing curve (Apple/iOS fluid spring-like bezier) */
+.liquid-sidebar {
+  transition-property: width, max-width, min-width, transform;
+  transition-duration: 420ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: width, transform;
+}
+
+.liquid-item {
+  transition-property: opacity, max-width, max-height, transform, margin, padding, background-color, border-color, color;
+  transition-duration: 380ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* Print styling for formal report export */
 @media print {
   body {
