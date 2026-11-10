@@ -546,56 +546,130 @@ class EnterpriseDataStore {
     this.loadState();
   }
 
-  private loadState() {
+  public loadState() {
     try {
       const p = localStorage.getItem('pmo_projects');
-      const rawProjects: Project[] = p ? JSON.parse(p) : INITIAL_PROJECTS;
-      const seen = new Set<string>();
-      this.projects = rawProjects
-        .filter((prj) => {
-          if (!prj.id || seen.has(prj.id)) return false;
-          seen.add(prj.id);
-          return true;
-        })
-        .map(clampContractAmount);
-
+      let rawProjects: Project[] = [];
       if (p) {
-        localStorage.setItem('pmo_projects', JSON.stringify(this.projects));
+        try {
+          const parsed = JSON.parse(p);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            rawProjects = parsed;
+          }
+        } catch {
+          // ignore corrupted JSON
+        }
       }
 
+      // If storage is empty or missing items, seed with INITIAL_PROJECTS
+      if (rawProjects.length === 0) {
+        rawProjects = [...INITIAL_PROJECTS];
+      }
+
+      // Guarantee all 5 core mock projects are present
+      const projectMap = new Map<string, Project>();
+      for (const initP of INITIAL_PROJECTS) {
+        projectMap.set(initP.id, clampContractAmount(initP));
+      }
+      for (const prj of rawProjects) {
+        if (prj.id) {
+          projectMap.set(prj.id, clampContractAmount(prj));
+        }
+      }
+      this.projects = Array.from(projectMap.values());
+      localStorage.setItem('pmo_projects', JSON.stringify(this.projects));
+
+      // Baselines: merge seed baselines with any custom baselines
+      this.baselines = { ...INITIAL_BASELINES };
       const b = localStorage.getItem('pmo_baselines');
-      this.baselines = b ? JSON.parse(b) : INITIAL_BASELINES;
+      if (b) {
+        try {
+          const parsedB = JSON.parse(b);
+          if (parsedB && typeof parsedB === 'object') {
+            this.baselines = { ...this.baselines, ...parsedB };
+          }
+        } catch {
+          // ignore
+        }
+      }
 
+      // Updates: merge seed updates with any custom updates
+      this.updates = { ...INITIAL_UPDATES };
       const u = localStorage.getItem('pmo_updates');
-      this.updates = u ? JSON.parse(u) : INITIAL_UPDATES;
+      if (u) {
+        try {
+          const parsedU = JSON.parse(u);
+          if (parsedU && typeof parsedU === 'object') {
+            this.updates = { ...this.updates, ...parsedU };
+          }
+        } catch {
+          // ignore
+        }
+      }
 
+      // Documents
+      this.documents = { ...INITIAL_DOCUMENTS };
       const d = localStorage.getItem('pmo_documents');
-      this.documents = d ? JSON.parse(d) : INITIAL_DOCUMENTS;
+      if (d) {
+        try {
+          const parsedD = JSON.parse(d);
+          if (parsedD && typeof parsedD === 'object') {
+            this.documents = { ...this.documents, ...parsedD };
+          }
+        } catch {
+          // ignore
+        }
+      }
 
+      // Risks
+      this.risks = { ...INITIAL_RISKS };
       const r = localStorage.getItem('pmo_risks');
-      this.risks = r ? JSON.parse(r) : INITIAL_RISKS;
+      if (r) {
+        try {
+          const parsedR = JSON.parse(r);
+          if (parsedR && typeof parsedR === 'object') {
+            this.risks = { ...this.risks, ...parsedR };
+          }
+        } catch {
+          // ignore
+        }
+      }
 
+      // Issues
+      this.issues = { ...INITIAL_ISSUES };
       const iss = localStorage.getItem('pmo_issues');
-      this.issues = iss ? JSON.parse(iss) : INITIAL_ISSUES;
+      if (iss) {
+        try {
+          const parsedIss = JSON.parse(iss);
+          if (parsedIss && typeof parsedIss === 'object') {
+            this.issues = { ...this.issues, ...parsedIss };
+          }
+        } catch {
+          // ignore
+        }
+      }
 
+      // Closeouts
       const c = localStorage.getItem('pmo_closeouts');
       this.closeouts = c ? JSON.parse(c) : {};
 
+      // Audit logs
       const l = localStorage.getItem('pmo_audit_logs');
-      this.auditLogs = l ? JSON.parse(l) : INITIAL_AUDIT_LOGS;
+      this.auditLogs = l ? JSON.parse(l) : [...INITIAL_AUDIT_LOGS];
 
+      // Notifications
       const n = localStorage.getItem('pmo_notifications');
-      this.notifications = n ? JSON.parse(n) : INITIAL_NOTIFICATIONS;
+      this.notifications = n ? JSON.parse(n) : [...INITIAL_NOTIFICATIONS];
     } catch {
-      this.projects = INITIAL_PROJECTS;
-      this.baselines = INITIAL_BASELINES;
-      this.updates = INITIAL_UPDATES;
-      this.documents = INITIAL_DOCUMENTS;
-      this.risks = INITIAL_RISKS;
-      this.issues = INITIAL_ISSUES;
+      this.projects = [...INITIAL_PROJECTS].map(clampContractAmount);
+      this.baselines = { ...INITIAL_BASELINES };
+      this.updates = { ...INITIAL_UPDATES };
+      this.documents = { ...INITIAL_DOCUMENTS };
+      this.risks = { ...INITIAL_RISKS };
+      this.issues = { ...INITIAL_ISSUES };
       this.closeouts = {};
-      this.auditLogs = INITIAL_AUDIT_LOGS;
-      this.notifications = INITIAL_NOTIFICATIONS;
+      this.auditLogs = [...INITIAL_AUDIT_LOGS];
+      this.notifications = [...INITIAL_NOTIFICATIONS];
     }
   }
 
@@ -621,28 +695,39 @@ class EnterpriseDataStore {
 
   // Projects
   async getProjects(): Promise<Project[]> {
-    let list: Project[] = [];
+    const projectMap = new Map<string, Project>();
+
+    // 1. Seed with local mock projects first
+    for (const prj of this.projects) {
+      if (prj.id) {
+        projectMap.set(prj.id, clampContractAmount(prj));
+      }
+    }
+    for (const initP of INITIAL_PROJECTS) {
+      if (!projectMap.has(initP.id)) {
+        projectMap.set(initP.id, clampContractAmount(initP));
+      }
+    }
+
+    // 2. Overlay any live remote projects from Firestore if available
     if (isFirebaseConfigured && db) {
       try {
         const snap = await getDocs(collection(db, 'projects'));
         if (!snap.empty) {
-          snap.forEach((d) => list.push(d.data() as Project));
+          snap.forEach((d) => {
+            const data = d.data() as Project;
+            if (data && data.id) {
+              projectMap.set(data.id, clampContractAmount(data));
+            }
+          });
         }
       } catch (e) {
         console.warn('Firestore fetch failed, using local store:', e);
       }
     }
-    if (list.length === 0) {
-      list = [...this.projects];
-    }
-    const seen = new Set<string>();
-    return list
-      .filter((prj) => {
-        if (!prj.id || seen.has(prj.id)) return false;
-        seen.add(prj.id);
-        return true;
-      })
-      .map(clampContractAmount);
+
+    const result = Array.from(projectMap.values());
+    return result;
   }
 
   async getProjectById(id: string): Promise<Project | null> {
@@ -655,7 +740,7 @@ class EnterpriseDataStore {
         console.warn('Firestore fetch failed:', e);
       }
     }
-    const found = this.projects.find((p) => p.id === id);
+    const found = this.projects.find((p) => p.id === id) || INITIAL_PROJECTS.find((p) => p.id === id);
     return found ? clampContractAmount(found) : null;
   }
 
@@ -731,7 +816,7 @@ class EnterpriseDataStore {
         console.warn(e);
       }
     }
-    return this.baselines[baselineId] || null;
+    return this.baselines[baselineId] || INITIAL_BASELINES[baselineId] || null;
   }
 
   async saveBaseline(baseline: ProjectBaseline, user: UserProfile): Promise<ProjectBaseline> {
@@ -780,7 +865,8 @@ class EnterpriseDataStore {
         console.warn(e);
       }
     }
-    return (this.updates[projectId] || []).sort(
+    const localUpdates = this.updates[projectId] || INITIAL_UPDATES[projectId] || [];
+    return [...localUpdates].sort(
       (a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()
     );
   }
@@ -837,7 +923,7 @@ class EnterpriseDataStore {
 
   // Documents
   async getDocuments(projectId: string): Promise<ProjectDocument[]> {
-    return this.documents[projectId] || [];
+    return this.documents[projectId] || INITIAL_DOCUMENTS[projectId] || [];
   }
 
   async addDocument(docItem: ProjectDocument, user: UserProfile): Promise<ProjectDocument> {
@@ -872,7 +958,7 @@ class EnterpriseDataStore {
 
   // Risks & Issues
   async getRisks(projectId: string): Promise<RiskItem[]> {
-    return this.risks[projectId] || [];
+    return this.risks[projectId] || INITIAL_RISKS[projectId] || [];
   }
 
   async addRisk(risk: RiskItem): Promise<RiskItem> {
@@ -883,7 +969,7 @@ class EnterpriseDataStore {
   }
 
   async getIssues(projectId: string): Promise<IssueItem[]> {
-    return this.issues[projectId] || [];
+    return this.issues[projectId] || INITIAL_ISSUES[projectId] || [];
   }
 
   async addIssue(issue: IssueItem): Promise<IssueItem> {

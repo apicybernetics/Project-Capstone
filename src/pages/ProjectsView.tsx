@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Project, EVMMetrics, ProjectType, HealthStatus } from '../types';
 import { formatCurrency } from '../services/financialService';
+import { dataStore } from '../services/dataService';
 
 interface ProjectsViewProps {
   projects: Project[];
@@ -219,6 +220,43 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           );
         })}
       </div>
+
+      {filteredProjects.length === 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-3">
+          <FolderKanban className="w-12 h-12 text-slate-300 mx-auto" />
+          <h3 className="font-bold text-slate-900 text-base">No Projects Found</h3>
+          <p className="text-xs text-slate-500">
+            {projects.length === 0
+              ? 'No projects loaded in current workspace.'
+              : 'No projects match your filter criteria.'}
+          </p>
+          <div className="flex items-center justify-center gap-2 pt-2">
+            {projects.length === 0 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  dataStore.resetDemoData();
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold cursor-pointer"
+              >
+                Restore Mock Projects
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setTypeFilter('All');
+                  setHealthFilter('All');
+                }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold cursor-pointer"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

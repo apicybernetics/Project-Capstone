@@ -136,7 +136,7 @@ const MainApp: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [isAuthenticated]);
 
   // When selected project changes, refresh project specific subcollections
   useEffect(() => {
