@@ -17,6 +17,9 @@ export const FirebaseConfigModal: React.FC<FirebaseConfigModalProps> = ({ isOpen
   const [apiKey, setApiKey] = useState(firebaseConfig.apiKey || '');
   const [projectId, setProjectId] = useState(firebaseConfig.projectId || 'project-management-outlook');
   const [authDomain, setAuthDomain] = useState(firebaseConfig.authDomain || 'project-management-outlook.firebaseapp.com');
+  const [firestoreDatabaseId, setFirestoreDatabaseId] = useState(
+    firebaseConfig.firestoreDatabaseId || 'ai-studio-projectmanagemen-e7e659ff-6bb8-4cb2-9839-9719ec464008'
+  );
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'status' | 'rules' | 'reset'>('status');
 
@@ -29,11 +32,12 @@ export const FirebaseConfigModal: React.FC<FirebaseConfigModalProps> = ({ isOpen
       projectId,
       authDomain: authDomain || `${projectId}.firebaseapp.com`,
       storageBucket: `${projectId}.appspot.com`,
+      firestoreDatabaseId,
     });
   };
 
   const copyEnvSample = () => {
-    const text = `VITE_FIREBASE_API_KEY="YOUR_API_KEY"\nVITE_FIREBASE_AUTH_DOMAIN="YOUR_PROJECT_ID.firebaseapp.com"\nVITE_FIREBASE_PROJECT_ID="YOUR_PROJECT_ID"\nVITE_FIREBASE_STORAGE_BUCKET="YOUR_PROJECT_ID.appspot.com"\nVITE_FIREBASE_MESSAGING_SENDER_ID="YOUR_SENDER_ID"\nVITE_FIREBASE_APP_ID="YOUR_APP_ID"`;
+    const text = `VITE_FIREBASE_API_KEY="YOUR_API_KEY"\nVITE_FIREBASE_AUTH_DOMAIN="YOUR_PROJECT_ID.firebaseapp.com"\nVITE_FIREBASE_PROJECT_ID="YOUR_PROJECT_ID"\nVITE_FIREBASE_STORAGE_BUCKET="YOUR_PROJECT_ID.appspot.com"\nVITE_FIREBASE_MESSAGING_SENDER_ID="YOUR_SENDER_ID"\nVITE_FIREBASE_APP_ID="YOUR_APP_ID"\nVITE_FIREBASE_DATABASE_ID="ai-studio-projectmanagemen-e7e659ff-6bb8-4cb2-9839-9719ec464008"`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -161,6 +165,17 @@ export const FirebaseConfigModal: React.FC<FirebaseConfigModalProps> = ({ isOpen
                     onChange={(e) => setApiKey(e.target.value)}
                     placeholder="AIzaSy..."
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-600 mb-1">Firestore Database ID</label>
+                  <input
+                    type="text"
+                    value={firestoreDatabaseId}
+                    onChange={(e) => setFirestoreDatabaseId(e.target.value)}
+                    placeholder="ai-studio-projectmanagemen-e7e659ff-6bb8-4cb2-9839-9719ec464008"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs"
                   />
                 </div>
 

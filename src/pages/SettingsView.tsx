@@ -36,6 +36,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ auditLogs }) => {
   const [apiKey, setApiKey] = useState(firebaseConfig.apiKey || '');
   const [projectId, setProjectId] = useState(firebaseConfig.projectId || 'project-management-outlook');
   const [authDomain, setAuthDomain] = useState(firebaseConfig.authDomain || 'project-management-outlook.firebaseapp.com');
+  const [firestoreDatabaseId, setFirestoreDatabaseId] = useState(
+    firebaseConfig.firestoreDatabaseId || 'ai-studio-projectmanagemen-e7e659ff-6bb8-4cb2-9839-9719ec464008'
+  );
 
   const handleSaveFirebase = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +48,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ auditLogs }) => {
       authDomain: authDomain || `${projectId}.firebaseapp.com`,
       storageBucket: `${projectId}.appspot.com`,
       messagingSenderId: '629313153131',
+      firestoreDatabaseId: firestoreDatabaseId || 'ai-studio-projectmanagemen-e7e659ff-6bb8-4cb2-9839-9719ec464008',
     });
   };
 
@@ -129,10 +133,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ auditLogs }) => {
 
         <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-xs space-y-1">
           <p className="font-bold text-blue-900">Configured Firebase Project Target</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-slate-700">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-slate-700">
             <div><span className="text-slate-500">Project Name:</span> <span className="font-semibold">Project Management Outlook</span></div>
             <div><span className="text-slate-500">Project ID:</span> <span className="font-mono font-semibold">project-management-outlook</span></div>
             <div><span className="text-slate-500">Project Number:</span> <span className="font-mono font-semibold">629313153131</span></div>
+            <div><span className="text-slate-500">Database ID:</span> <span className="font-mono font-semibold text-blue-600 truncate">ai-studio-projectmanagemen...</span></div>
           </div>
         </div>
 
@@ -175,6 +180,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ auditLogs }) => {
               >
                 {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Firestore Database ID</label>
+              <input
+                type="text"
+                value={firestoreDatabaseId}
+                onChange={(e) => setFirestoreDatabaseId(e.target.value)}
+                placeholder="ai-studio-projectmanagemen-e7e659ff-6bb8-4cb2-9839-9719ec464008"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-slate-50 focus:bg-white transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Auth Domain</label>
+              <input
+                type="text"
+                value={authDomain}
+                onChange={(e) => setAuthDomain(e.target.value)}
+                placeholder="project-management-outlook.firebaseapp.com"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-slate-50 focus:bg-white transition-colors"
+              />
             </div>
           </div>
 

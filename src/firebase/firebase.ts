@@ -36,7 +36,10 @@ const getActiveConfig = (): FirebaseClientConfig => {
     storageBucket: appletConfig.storageBucket || 'project-management-outlook.firebasestorage.app',
     messagingSenderId: appletConfig.messagingSenderId || '629313153131',
     appId: appletConfig.appId || '',
-    firestoreDatabaseId: (appletConfig as any).firestoreDatabaseId || '',
+    firestoreDatabaseId:
+      (appletConfig as any).firestoreDatabaseId ||
+      import.meta.env.VITE_FIREBASE_DATABASE_ID ||
+      'ai-studio-projectmanagemen-e7e659ff-6bb8-4cb2-9839-9719ec464008',
   };
 };
 
@@ -58,11 +61,18 @@ if (isFirebaseConfigured) {
   try {
     app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     auth = getAuth(app);
-    db = firebaseConfig.firestoreDatabaseId
-      ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-      : getFirestore(app);
+    // Explicitly pass firestoreDatabaseId so Firestore connects to the correct custom database rather than non-existent '(default)'
+    const targetDatabaseId =
+      firebaseConfig.firestoreDatabaseId ||
+      'ai-studio-projectmanagemen-e7e659ff-6bb8-4cb2-9839-9719ec464008';
+    db = getFirestore(app, targetDatabaseId);
     storage = getStorage(app);
-    console.info('[Firebase] Successfully connected to project:', firebaseConfig.projectId, 'Database:', firebaseConfig.firestoreDatabaseId || 'default');
+    console.info(
+      '[Firebase] Successfully connected to project:',
+      firebaseConfig.projectId,
+      'Database:',
+      targetDatabaseId
+    );
   } catch (err) {
     console.warn('[Firebase] Initialization error, falling back to local engine:', err);
   }
